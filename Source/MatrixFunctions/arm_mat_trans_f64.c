@@ -54,7 +54,126 @@
                    - \ref ARM_MATH_SUCCESS       : Operation successful
                    - \ref ARM_MATH_SIZE_MISMATCH : Matrix size check failed
  */
+#if defined(ARM_MATH_NEON)
 
+arm_status arm_mat_trans_f64(
+  const arm_matrix_instance_f64 * pSrc,
+  arm_matrix_instance_f64 * pDst)
+{
+  float64_t *pIn = pSrc->pData;                  /* input data matrix pointer */
+  float64_t *pOut = pDst->pData;                 /* output data matrix pointer */
+  float64_t *px;                                 /* Temporary output data matrix pointer */
+  uint16_t nRows = pSrc->numRows;                /* number of rows */
+  uint16_t nColumns = pSrc->numCols;             /* number of columns */
+
+  uint16_t blkCnt, rowCnt, i = 0U, row = nRows;          /* loop counters */
+  arm_status status;                             /* status of matrix transpose  */
+
+#ifdef ARM_MATH_MATRIX_CHECK
+
+  /* Check for matrix mismatch condition */
+  if ((pSrc->numRows != pDst->numCols) || (pSrc->numCols != pDst->numRows))
+  {
+    /* Set status as ARM_MATH_SIZE_MISMATCH */
+    status = ARM_MATH_SIZE_MISMATCH;
+  }
+  else
+#endif /*    #ifdef ARM_MATH_MATRIX_CHECK    */
+
+  {
+    /* Matrix transpose by exchanging the rows with columns */
+    /* Row loop */
+    rowCnt = row >> 1;
+    while (rowCnt > 0U)
+    {
+      float64_t *row0V,*row1V;
+      float64x2x4_t raV;
+
+      blkCnt = nColumns >> 2;
+
+      /* The pointer px is set to starting address of the column being processed */
+      px = pOut + i;
+
+      /* Compute 4 outputs at a time.
+       ** a second loop below computes the remaining 1 to 3 samples. */
+      while (blkCnt > 0U)        /* Column loop */
+      {
+        row0V = pIn;
+        row1V = pIn+nColumns;
+        pIn+=4;
+        raV = vld4q_lane_f64(row0V, raV, 0);
+        raV = vld4q_lane_f64(row1V, raV, 1);
+        
+        vst1q_f64(px,raV.val[0]);
+        px += nRows;
+
+        vst1q_f64(px,raV.val[1]);
+        px += nRows;
+
+        vst1q_f64(px,raV.val[2]);
+        px += nRows;
+
+        vst1q_f64(px,raV.val[3]);
+        px += nRows;
+
+        /* Decrement the column loop counter */
+        blkCnt--;
+      }
+
+      /* Perform matrix transpose for last 3 samples here. */
+      blkCnt = nColumns % 0x4U;
+
+      while (blkCnt > 0U)
+      {
+        /* Read and store the input element in the destination */
+        *px++ = *pIn;
+        *px++ = *(pIn + 1 * nColumns);
+        
+        px += (nRows - 2);
+        pIn++;
+
+        /* Decrement the column loop counter */
+        blkCnt--;
+      }
+
+      i += 2;
+      pIn += 1 * nColumns;
+
+      /* Decrement the row loop counter */
+      rowCnt--;
+
+    }         /* Row loop end  */
+
+    rowCnt = row & 1;
+    while (rowCnt > 0U)
+    {
+      blkCnt = nColumns ;
+      /* The pointer px is set to starting address of the column being processed */
+      px = pOut + i;
+
+      while (blkCnt > 0U)
+      {
+        /* Read and store the input element in the destination */
+        *px = *pIn++;
+
+        /* Update the pointer px to point to the next row of the transposed matrix */
+        px += nRows;
+
+        /* Decrement the column loop counter */
+        blkCnt--;
+      }
+      i++;
+      rowCnt -- ;
+    }
+
+    /* Set status as ARM_MATH_SUCCESS */
+    status = ARM_MATH_SUCCESS;
+  }
+
+  /* Return to application */
+  return (status);
+}
+#else
 arm_status arm_mat_trans_f64(
   const arm_matrix_instance_f64 * pSrc,
         arm_matrix_instance_f64 * pDst)
@@ -149,7 +268,7 @@ arm_status arm_mat_trans_f64(
   /* Return to application */
   return (status);
 }
-
+#endif
 /**
  * @} end of MatrixTrans group
  */

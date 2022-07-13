@@ -45,50 +45,7 @@
  @param[out]    pIndex     index of maximum value returned here
  @return        none
  */
-#if defined(ARM_MATH_NEON)
-void arm_absmax_f64(
-                    const float64_t * pSrc,
-                    uint32_t blockSize,
-                    float64_t * pResult,
-                    uint32_t * pIndex)
-{
-    float64_t maxVal, out;                         /* Temporary variables to store the output value. */
-    uint32_t blkCnt, outIndex;                     /* Loop counter */
-        
-    
-    
-    
-    /* Initialise index value to zero. */
-    outIndex = 0U;
-    
-    /* Load first input value that act as reference value for comparision */
-    out = fabs(*pSrc++);
-    
-    /* Initialize blkCnt with number of samples */
-    blkCnt = (blockSize - 1U);
-    
-    while (blkCnt > 0U)
-    {
-        /* Initialize maxVal to the next consecutive values one by one */
-        maxVal = fabs(*pSrc++);
-        
-        /* compare for the maximum value */
-        if (out < maxVal)
-        {
-            /* Update the maximum value and it's index */
-            out = maxVal;
-            outIndex = blockSize - blkCnt;
-        }
-        
-        /* Decrement loop counter */
-        blkCnt--;
-    }
-    
-    /* Store the maximum value and it's index into destination pointers */
-    *pResult = out;
-    *pIndex = outIndex;
-}
-#else
+
 void arm_absmax_f64(
                     const float64_t * pSrc,
                     uint32_t blockSize,
@@ -130,7 +87,7 @@ void arm_absmax_f64(
     *pResult = out;
     *pIndex = outIndex;
 }
-#endif
+
 /**
  @} end of AbsMax group
  */
