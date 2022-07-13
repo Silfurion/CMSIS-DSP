@@ -86,7 +86,7 @@ arm_status arm_mat_trans_f64(
     rowCnt = row >> 1;
     while (rowCnt > 0U)
     {
-      float64_t *row0V,*row1V;
+      float64_t *row0,*row1;
       float64x2x4_t raV;
 
       blkCnt = nColumns >> 2;
@@ -98,11 +98,11 @@ arm_status arm_mat_trans_f64(
        ** a second loop below computes the remaining 1 to 3 samples. */
       while (blkCnt > 0U)        /* Column loop */
       {
-        row0V = pIn;
-        row1V = pIn+nColumns;
+        row0 = pIn;
+        row1 = pIn+nColumns;
         pIn+=4;
-        raV = vld4q_lane_f64(row0V, raV, 0);
-        raV = vld4q_lane_f64(row1V, raV, 1);
+        raV = vld4q_lane_f64(row0, raV, 0);
+        raV = vld4q_lane_f64(row1, raV, 1);
         
         vst1q_f64(px,raV.val[0]);
         px += nRows;
