@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
  * Project:      CMSIS DSP Library
- * Title:        arm_sum_q15.c
+ * Title:        arm_accumulate_q15.c
  * Description:  Sum value of a Q15 vector
  *
  * $Date:        25 May 2022
@@ -54,7 +54,7 @@
  */
 
 #if defined(ARM_MATH_MVEI) && !defined(ARM_MATH_AUTOVECTORIZE)
-void arm_sum_q15(
+void arm_accumulate_q15(
   const q15_t * pSrc,
         uint32_t blockSize,
         q15_t * pResult)
@@ -94,7 +94,7 @@ void arm_sum_q15(
     *pResult = sum;
 }
 #else
-void arm_sum_q15(
+void arm_accumulate_q15(
   const q15_t * pSrc,
         uint32_t blockSize,
         q15_t * pResult)

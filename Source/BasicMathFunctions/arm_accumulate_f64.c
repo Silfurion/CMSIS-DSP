@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
  * Project:      CMSIS DSP Library
- * Title:        arm_sum_f64.c
+ * Title:        arm_accumulate_f64.c
  * Description:  Sum value of a floating-point vector
  *
  * $Date:        03 June 2022
@@ -46,7 +46,7 @@
   @return        none
  */
 #if defined(ARM_MATH_NEON)
-void arm_sum_f64(
+void arm_accumulate_f64(
   const float64_t * pSrc,
         uint32_t blockSize,
         float64_t * pResult)
@@ -94,7 +94,7 @@ void arm_sum_f64(
   *pResult = sum;
 }
 #else
-void arm_sum_f64(
+void arm_accumulate_f64(
   const float64_t * pSrc,
         uint32_t blockSize,
         float64_t *  pResult)

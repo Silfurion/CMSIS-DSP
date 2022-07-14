@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
  * Project:      CMSIS DSP Library
- * Title:        arm_sum_f32.c
+ * Title:        arm_accumulate_f32.c
  * Description:  Sum value of a floating-point vector
  *
  * $Date:        24 May 2022
@@ -49,7 +49,7 @@
 
 #include "arm_helium_utils.h"
 
-void arm_sum_f32(
+void arm_accumulate_f32(
   const float32_t * pSrc,
   uint32_t blockSize,
   float32_t * pResult)
@@ -90,7 +90,7 @@ void arm_sum_f32(
 
 #else
 #if defined(ARM_MATH_NEON_EXPERIMENTAL) && !defined(ARM_MATH_AUTOVECTORIZE)
-void arm_sum_f32(
+void arm_accumulate_f32(
   const float32_t * pSrc,
   uint32_t blockSize,
   float32_t * pResult)
@@ -139,7 +139,7 @@ void arm_sum_f32(
   *pResult = sum;
 }
 #else
-void arm_sum_f32(
+void arm_accumulate_f32(
   const float32_t * pSrc,
         uint32_t blockSize,
         float32_t * pResult)

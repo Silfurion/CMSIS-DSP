@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
  * Project:      CMSIS DSP Library
- * Title:        arm_sum_q7.c
- * Description:  Sum value of a Q7 vector
+ * Title:        arm_accumulate_q31.c
+ * Description:  Sum value of a Q31 vector
  *
  * $Date:        25 May 2022
  * $Revision:    V1.0.0
@@ -38,72 +38,66 @@
  */
 
 /**
-  @brief         Sum value of a Q7 vector.
+  @brief         Sum value of a Q31 vector.
   @param[in]     pSrc       points to the input vector
   @param[in]     blockSize  number of samples in input vector
   @param[out]    pResult    sum value returned here
   @return        none
 
   @par           Scaling and Overflow Behavior
-                   The function is implemented using a 32-bit internal accumulator.
-                   The input is represented in 1.7 format and is accumulated in a 32-bit
-                   accumulator in 25.7 format.
+                   The function is implemented using a 64-bit internal accumulator.
+                   The input is represented in 1.31 format and is accumulated in a 64-bit
+                   accumulator in 33.31 format.
                    There is no risk of internal overflow with this approach, and the
                    full precision of intermediate result is preserved.
-                   Finally, the accumulator is truncated to yield a result of 1.7 format.
+                   Finally, the accumulator is truncated to yield a result of 1.31 format.
  */
-
 #if defined(ARM_MATH_MVEI) && !defined(ARM_MATH_AUTOVECTORIZE)
-
-void arm_sum_q7(
-  const q7_t * pSrc,
+void arm_accumulate_q31(
+  const q31_t * pSrc,
         uint32_t blockSize,
-        q7_t * pResult)
+        q31_t * pResult)
 {
     uint32_t  blkCnt;           /* loop counters */
-    q7x16_t vecSrc;
-    q31_t     sum = 0L;
+    q31x4_t vecSrc;
+    q63_t     sum = 0LL;
 
 
-    blkCnt = blockSize >> 4;
+    /* Compute 4 outputs at a time */
+    blkCnt = blockSize >> 2U;
     while (blkCnt > 0U)
     {
-        vecSrc = vldrbq_s8(pSrc);
+
+        vecSrc = vldrwq_s32(pSrc);
         /*
          * sum lanes
          */
-        sum = vaddvaq(sum, vecSrc);
+        sum = vaddlvaq(sum, vecSrc);
 
-        blkCnt--;
-        pSrc += 16;
+        blkCnt --;
+        pSrc += 4;
     }
 
-    blkCnt = blockSize & 0xF;
+    /* Tail */
+    blkCnt = blockSize & 0x3;
+
     while (blkCnt > 0U)
     {
       /* C = (A[0] + A[1] + A[2] + ... + A[blockSize-1]) */
       sum += *pSrc++;
-  
-      /* Decrement loop counter */
-      blkCnt--;
+      blkCnt --;
     }
 
-    /* C = (A[0] + A[1] + A[2] + ... + A[blockSize-1])  */
-    /* Store the result to the destination */
     *pResult = sum;
 }
 #else
-void arm_sum_q7(
-  const q7_t * pSrc,
+void arm_accumulate_q31(
+  const q31_t * pSrc,
         uint32_t blockSize,
-        q7_t * pResult)
+        q31_t * pResult)
 {
         uint32_t blkCnt;                               /* Loop counter */
-        q31_t sum = 0;                                 /* Temporary result storage */
-
-#if defined (ARM_MATH_LOOPUNROLL)
-        q31_t in;
-#endif
+        q63_t sum = 0;                                 /* Temporary result storage */
 
 #if defined (ARM_MATH_LOOPUNROLL)
 
@@ -113,11 +107,13 @@ void arm_sum_q7(
   while (blkCnt > 0U)
   {
     /* C = (A[0] + A[1] + A[2] + ... + A[blockSize-1]) */
-    in = read_q7x4_ia (&pSrc);
-    sum += ((in << 24U) >> 24U);
-    sum += ((in << 16U) >> 24U);
-    sum += ((in <<  8U) >> 24U);
-    sum +=  (in >> 24U);
+    sum += *pSrc++;
+
+    sum += *pSrc++;
+
+    sum += *pSrc++;
+
+    sum += *pSrc++;
 
     /* Decrement the loop counter */
     blkCnt--;
