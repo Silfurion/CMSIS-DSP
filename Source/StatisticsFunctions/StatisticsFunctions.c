@@ -98,3 +98,9 @@
 #include "arm_mse_q31.c"
 #include "arm_mse_f32.c"
 #include "arm_mse_f64.c"
+#include "arm_accumulate_f32.c"
+#include "arm_accumulate_f64.c"
+#include "arm_accumulate_q7.c"
+#include "arm_accumulate_q15.c"
+#include "arm_accumulate_q31.c"
+
