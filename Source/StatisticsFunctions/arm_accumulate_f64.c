@@ -1,10 +1,10 @@
 /* ----------------------------------------------------------------------
  * Project:      CMSIS DSP Library
  * Title:        arm_accumulate_f64.c
- * Description:  Sum value of a floating-point vector
+ * Description:  Accumulation value of a floating-point vector
  *
- * $Date:        03 June 2022
- * $Revision:    V1.0.1
+ * $Date:        14 July 2022
+ * $Revision:    V1.0.0
  *
  * Target Processor: Cortex-M and Cortex-A cores
  * -------------------------------------------------------------------- */
@@ -29,91 +29,91 @@
 #include "dsp/basic_math_functions.h"
 
 /**
-  @ingroup groupMath
+ @ingroup groupStats
  */
 
 
 /**
-  @addtogroup sum
-  @{
+ @addtogroup Accumulation
+ @{
  */
 
 /**
-  @brief         Sum value of a floating-point vector.
-  @param[in]     pSrc       points to the input vector.
-  @param[in]     blockSize  number of samples in input vector.
-  @param[out]    pResult    sum value returned here.
-  @return        none
+ @brief         Accumulation value of a floating-point vector.
+ @param[in]     pSrc       points to the input vector.
+ @param[in]     blockSize  number of samples in input vector.
+ @param[out]    pResult    sum value returned here.
+ @return        none
  */
 #if defined(ARM_MATH_NEON)
 void arm_accumulate_f64(
-  const float64_t * pSrc,
-        uint32_t blockSize,
-        float64_t * pResult)
+                        const float64_t * pSrc,
+                        uint32_t blockSize,
+                        float64_t * pResult)
 {
-    uint32_t blkCnt;                               /* Loop counter */
-    
-    /*Neon buffers*/
-    float64x2_t vSum = vdupq_n_f64(0.0f);
-    float64x2_t afterLoad ;
-    
-    float64_t sum = 0.;                            /* Temporary result storage */
-
+  uint32_t blkCnt;                               /* Loop counter */
+  
+  /*Neon buffers*/
+  float64x2_t vSum = vdupq_n_f64(0.0f);
+  float64x2_t afterLoad ;
+  
+  float64_t sum = 0.;                            /* Temporary result storage */
+  
   /* Initialize blkCnt with number of samples */
-    blkCnt = blockSize >> 1U;
-
-
+  blkCnt = blockSize >> 1U;
+  
+  
   while (blkCnt > 0U)
   {
     /* C = (A[0] + A[1] + A[2] + ... + A[blockSize-1]) */
-      
-      afterLoad = vld1q_f64(pSrc);
-      vSum = vaddq_f64(vSum, afterLoad);
-
+    
+    afterLoad = vld1q_f64(pSrc);
+    vSum = vaddq_f64(vSum, afterLoad);
+    
     /* Decrement loop counter */
     blkCnt--;
-      
+    
     pSrc += 2;
   }
-    sum = vaddvq_f64(vSum);
-    
-    /* Tail */
-    blkCnt = blockSize & 1 ;
-
-    while (blkCnt > 0U)
-    {
-      /* C = (A[0] + A[1] + A[2] + ... + A[blockSize-1]) */
-      sum += *pSrc++;
+  sum = vaddvq_f64(vSum);
   
-      /* Decrement loop counter */
-      blkCnt--;
-    }
-
+  /* Tail */
+  blkCnt = blockSize & 1 ;
+  
+  while (blkCnt > 0U)
+  {
+    /* C = (A[0] + A[1] + A[2] + ... + A[blockSize-1]) */
+    sum += *pSrc++;
+    
+    /* Decrement loop counter */
+    blkCnt--;
+  }
+  
   /* C = (A[0] + A[1] + A[2] + ... + A[blockSize-1])  */
   /* Store result to destination */
   *pResult = sum;
 }
 #else
 void arm_accumulate_f64(
-  const float64_t * pSrc,
-        uint32_t blockSize,
-        float64_t *  pResult)
+                        const float64_t * pSrc,
+                        uint32_t blockSize,
+                        float64_t *  pResult)
 {
-        uint32_t blkCnt;                               /* Loop counter */
-        float64_t sum = 0.;                            /* Temporary result storage */
-
+  uint32_t blkCnt;                               /* Loop counter */
+  float64_t sum = 0.;                            /* Temporary result storage */
+  
   /* Initialize blkCnt with number of samples */
   blkCnt = blockSize;
-
+  
   while (blkCnt > 0U)
   {
     /* C = (A[0] + A[1] + A[2] + ... + A[blockSize-1]) */
     sum += *pSrc++;
-
+    
     /* Decrement loop counter */
     blkCnt--;
   }
-
+  
   /* C = (A[0] + A[1] + A[2] + ... + A[blockSize-1])  */
   /* Store result to destination */
   *pResult = sum;
@@ -123,5 +123,5 @@ void arm_accumulate_f64(
 
 
 /**
-  @} end of sum group
+ @} end of Accumulation group
  */

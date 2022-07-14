@@ -1,9 +1,9 @@
 /* ----------------------------------------------------------------------
  * Project:      CMSIS DSP Library
  * Title:        arm_accumulate_f16.c
- * Description:  Sum value of a floating-point vector
+ * Description:  accumulation value of a floating-point vector
  *
- * $Date:        24 May 2022
+ * $Date:        14 July 2022
  * $Revision:    V1.0.0
  *
  * Target Processor: Cortex-M and Cortex-A cores
@@ -32,112 +32,112 @@
 
 
 /**
-  @ingroup groupMath
+ @ingroup groupStats
  */
 
 /**
-  @defgroup sum Sum
-
-  Calculates the sum of the input vector. Sum is defined as the addition of the elements in the vector.
-  The underlying algorithm is used:
-
-  <pre>
-      Result = (pSrc[0] + pSrc[1] + pSrc[2] + ... + pSrc[blockSize-1]);
-  </pre>
-
-  There are separate functions for floating-point, Q31, Q15, and Q7 data types.
+ @defgroup Accumulation
+ 
+ Calculates the accumulation of the input vector. Sum is defined as the addition of the elements in the vector.
+ The underlying algorithm is used:
+ 
+ <pre>
+ Result = (pSrc[0] + pSrc[1] + pSrc[2] + ... + pSrc[blockSize-1]);
+ </pre>
+ 
+ There are separate functions for floating-point, Q31, Q15, and Q7 data types.
  */
 
 /**
-  @addtogroup sum
-  @{
+ @addtogroup Accumulation
+ @{
  */
 
 /**
-  @brief         sum value of a floating-point vector.
-  @param[in]     pSrc       points to the input vector.
-  @param[in]     blockSize  number of samples in input vector.
-  @param[out]    pResult    sum value returned here.
-  @return        none
+ @brief         accumulate value of a floating-point vector.
+ @param[in]     pSrc       points to the input vector.
+ @param[in]     blockSize  number of samples in input vector.
+ @param[out]    pResult    sum value returned here.
+ @return        none
  */
 #if defined(ARM_MATH_MVE_FLOAT16) && !defined(ARM_MATH_AUTOVECTORIZE)
 
 #include "arm_helium_utils.h"
 
 void arm_accumulate_f16(
-  const float16_t * pSrc,
-  uint32_t blockSize,
-  float16_t * pResult)
+                        const float16_t * pSrc,
+                        uint32_t blockSize,
+                        float16_t * pResult)
 {
-    int32_t  blkCnt;           /* loop counters */
-    f16x8_t vecSrc;
-    f16x8_t sumVec = vdupq_n_f16(0.0f16);
-
-    blkCnt = blockSize;
-    do {
-        mve_pred16_t p = vctp16q(blkCnt);
-
-        vecSrc = vldrhq_z_f16((float16_t const *) pSrc, p);
-        sumVec = vaddq_m_f16(sumVec, sumVec, vecSrc, p);
-
-        blkCnt -= 8;
-        pSrc += 8;
-    }
-    while (blkCnt > 0);
-
-    *pResult = vecAddAcrossF16Mve(sumVec);
+  int32_t  blkCnt;           /* loop counters */
+  f16x8_t vecSrc;
+  f16x8_t sumVec = vdupq_n_f16(0.0f16);
+  
+  blkCnt = blockSize;
+  do {
+    mve_pred16_t p = vctp16q(blkCnt);
+    
+    vecSrc = vldrhq_z_f16((float16_t const *) pSrc, p);
+    sumVec = vaddq_m_f16(sumVec, sumVec, vecSrc, p);
+    
+    blkCnt -= 8;
+    pSrc += 8;
+  }
+  while (blkCnt > 0);
+  
+  *pResult = vecAddAcrossF16Mve(sumVec);
 }
 
 
 #else
 
 void arm_accumulate_f16(
-  const float16_t * pSrc,
-        uint32_t blockSize,
-        float16_t * pResult)
+                        const float16_t * pSrc,
+                        uint32_t blockSize,
+                        float16_t * pResult)
 {
-        uint32_t blkCnt;                               /* Loop counter */
-        float16_t sum = 0.0f;                          /* Temporary result storage */
-
+  uint32_t blkCnt;                               /* Loop counter */
+  float16_t sum = 0.0f;                          /* Temporary result storage */
+  
 #if defined (ARM_MATH_LOOPUNROLL) && !defined(ARM_MATH_AUTOVECTORIZE)
-
+  
   /* Loop unrolling: Compute 4 outputs at a time */
   blkCnt = blockSize >> 2U;
-
+  
   while (blkCnt > 0U)
   {
     /* C = (A[0] + A[1] + A[2] + ... + A[blockSize-1]) */
     sum += (_Float16)*pSrc++;
-
+    
     sum += (_Float16)*pSrc++;
-
+    
     sum += (_Float16)*pSrc++;
-
+    
     sum += (_Float16)*pSrc++;
-
+    
     /* Decrement the loop counter */
     blkCnt--;
   }
-
+  
   /* Loop unrolling: Compute remaining outputs */
   blkCnt = blockSize % 0x4U;
-
+  
 #else
-
+  
   /* Initialize blkCnt with number of samples */
   blkCnt = blockSize;
-
+  
 #endif /* #if defined (ARM_MATH_LOOPUNROLL) */
-
+  
   while (blkCnt > 0U)
   {
     /* C = (A[0] + A[1] + A[2] + ... + A[blockSize-1]) */
     sum += (_Float16)*pSrc++;
-
+    
     /* Decrement loop counter */
     blkCnt--;
   }
-
+  
   /* C = (A[0] + A[1] + A[2] + ... + A[blockSize-1]) */
   /* Store result to destination */
   *pResult = sum ;
@@ -145,7 +145,7 @@ void arm_accumulate_f16(
 #endif /* defined(ARM_MATH_MVEF) && !defined(ARM_MATH_AUTOVECTORIZE) */
 
 /**
-  @} end of sum group
+ @} end of Accumulation group
  */
 
 #endif /* #if defined(ARM_FLOAT16_SUPPORTED) */ 
