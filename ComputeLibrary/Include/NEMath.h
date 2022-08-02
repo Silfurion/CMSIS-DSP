@@ -52,6 +52,14 @@ static inline float64x2_t vexpq_f64(float64x2_t x);
  */
 static inline float64x2_t vtaylor_polyq_f64(float64x2_t x, const float64_t *coeffs);
 
+/** Calculate reciprocal.
+ *
+ * @param[in] x Input value.
+ *
+ * @return The calculated reciprocal.
+ */
+static inline float64x2_t vinvq_f64(float64x2_t x);
+
 /** Calculate floor of a vector.
  *
  * @param[in] val Input vector value in F32 format.
@@ -258,6 +266,14 @@ inline float32x4_t vinvq_f32(float32x4_t x)
     float32x4_t recip = vrecpeq_f32(x);
     recip             = vmulq_f32(vrecpsq_f32(x, recip), recip);
     recip             = vmulq_f32(vrecpsq_f32(x, recip), recip);
+    return recip;
+}
+
+inline float64x2_t vinvq_f64(float64x2_t x)
+{
+    float64x2_t recip = vrecpeq_f64(x);
+    recip             = vmulq_f64(vrecpsq_f64(x, recip), recip);
+    recip             = vmulq_f64(vrecpsq_f64(x, recip), recip);
     return recip;
 }
 
