@@ -44,6 +44,17 @@ extern "C"
 
 
 /**
+   * @brief Converts the elements of the floating-point 64 vector to floating-point  vector.
+   * @param[in]  pSrc       points to the floating-point 64 input vector
+   * @param[out] pDst       points to the floating-point output vector
+   * @param[in]  blockSize  length of the input vector
+   */
+  void arm_f64_to_float(
+  const float64_t * pSrc,
+        float32_t * pDst,
+        uint32_t blockSize);
+
+/**
    * @brief Converts the elements of the floating-point vector to Q31 vector.
    * @param[in]  pSrc       points to the floating-point input vector
    * @param[out] pDst       points to the Q31 output vector
