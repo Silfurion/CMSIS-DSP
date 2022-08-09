@@ -133,6 +133,7 @@
   @return        none
  */
 #if defined(ARM_MATH_NEON)
+#include <stdio.h>
 void arm_biquad_cascade_df2T_f64(
   const arm_biquad_cascade_df2T_instance_f64 * S,
   const float64_t * pSrc,
@@ -149,7 +150,9 @@ void arm_biquad_cascade_df2T_f64(
                 (float64_t const *) S->pCoeffs;
     float64x2_t b0Coeffs, a0Coeffs;           /*  Coefficients vector       */
     float64x2_t state;                        /*  State vector*/
-    float64x2_t CompilerOpti ;
+  float64x2_t CompilerOpti;
+  //= vdupq_n_f64(0);
+  
     //d2Alone = vsetq_lane_f64(0.0f, d2Alone, 0);
     //d2Alone = vsetq_lane_f64(0.0f, d2Alone, 1);
     
@@ -201,7 +204,7 @@ void arm_biquad_cascade_df2T_f64(
             state = vfmaq_n_f64(state, b0Coeffs, Xn0);
             state = vfmaq_n_f64(state, a0Coeffs, acc0);
                     	
-            //state = vaddq_f64(state, CompilerOpti);  //This is the problematic line
+            state = vaddq_f64(state, CompilerOpti);  //This is the problematic line
             *pOut++ = acc0 ;
             sample--;
         }
