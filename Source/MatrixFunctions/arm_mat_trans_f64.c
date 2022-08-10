@@ -3,8 +3,8 @@
  * Title:        arm_mat_trans_f64.c
  * Description:  Floating-point matrix transpose
  *
- * $Date:        23 April 2021
- * $Revision:    V1.9.0
+ * $Date:        10 August 2022
+ * $Revision:    V1.9.1
  *
  * Target Processor: Cortex-M and Cortex-A cores
  * -------------------------------------------------------------------- */

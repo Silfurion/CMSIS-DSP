@@ -3,8 +3,8 @@
  * Title:        arm_mse_f64.c
  * Description:  Double floating point mean square error
  *
- * $Date:        05 April 2022
- * $Revision:    V1.10.0
+ * $Date:        10 August 2022
+ * $Revision:    V1.10.1
  *
  * Target Processor: Cortex-M and Cortex-A cores
  * -------------------------------------------------------------------- */

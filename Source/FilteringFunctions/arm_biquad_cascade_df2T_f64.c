@@ -132,14 +132,16 @@
   @param[in]     blockSize number of samples to process
   @return        none
  */
-#if defined(ARM_MATH_NEON)
-#include <stdio.h>
+#if defined(ARM_MATH_NEON_A)
 void arm_biquad_cascade_df2T_f64(
   const arm_biquad_cascade_df2T_instance_f64 * S,
   const float64_t * pSrc,
         float64_t * pDst,
-        uint32_t blockSize)
+        uint32_t  blockSize)
 {
+  
+  
+  
     const float64_t *pIn = pSrc;                  /*  source pointer            */
     float64_t Xn0, Xn1;
     float64_t acc0, acc1;
@@ -150,14 +152,8 @@ void arm_biquad_cascade_df2T_f64(
                 (float64_t const *) S->pCoeffs;
     float64x2_t b0Coeffs, a0Coeffs;           /*  Coefficients vector       */
     float64x2_t state;                        /*  State vector*/
-  float64x2_t CompilerOpti;
-  //= vdupq_n_f64(0);
   
-    //d2Alone = vsetq_lane_f64(0.0f, d2Alone, 0);
-    //d2Alone = vsetq_lane_f64(0.0f, d2Alone, 1);
-    
     float64_t b0 ;
-    
     
     
     do
@@ -204,10 +200,50 @@ void arm_biquad_cascade_df2T_f64(
             state = vfmaq_n_f64(state, b0Coeffs, Xn0);
             state = vfmaq_n_f64(state, a0Coeffs, acc0);
                     	
-            state = vaddq_f64(state, CompilerOpti);  //This is the problematic line
             *pOut++ = acc0 ;
+          
+          
+          
+          
+          
             sample--;
         }
+      sample = blockSize & 0 ;
+      while (sample > 0U) {
+          
+          /* y[n] = b0 * x[n] + d1 */
+          /* d1 = b1 * x[n] + a1 * y[n] + d2 */
+          /* d2 = b2 * x[n] + a2 * y[n] */
+          
+          Xn0 = *pIn++ ;
+          
+          /* Calculation of acc0*/
+          acc0 = b0*Xn0+vgetq_lane_f64(state, 0);
+          
+          
+          /*
+          *  final                  initial
+          *  state   b0Coeffs        state  a0Coeffs
+          *   |        |              |        |
+          *   __       __             __       __
+          *  /  \     /  \           /  \     /  \
+          * | d1 | = | b1 | * Xn0 + | d2 | + | a1 | x acc0
+          * | d2 |   | b2 |         | 0  |   | a2 |
+          *  \__/     \__/           \__/     \__/
+          */
+          
+          /* state -> initial state (see above) */
+          state = vsetq_lane_f64(vgetq_lane_f64(state, 1), state, 0);
+          state = vsetq_lane_f64(0.0f, state , 1);
+          
+          /* Calculation of final state */
+          state = vfmaq_n_f64(state, b0Coeffs, Xn0);
+          state = vfmaq_n_f64(state, a0Coeffs, acc0);
+                    
+          *pOut++ = acc0 ;
+          sample--;
+      }
+      
 
         /* Store the updated state variables back into the state array */
         pState[0] = vgetq_lane_f64(state, 0);
@@ -226,7 +262,184 @@ void arm_biquad_cascade_df2T_f64(
     } while (stage > 0U);
     
 }
+#endif
+
+
+
+#if defined(ARM_MATH_NEON_)
+void arm_biquad_cascade_df2T_f64(
+  const arm_biquad_cascade_df2T_instance_f64 * S,
+  const float64_t * pSrc,
+        float64_t * pDst,
+        uint32_t  blockSize)
+{
+  
+  
+  const float64_t *pIn = pSrc;                   /*  source pointer            */
+  float64_t *pOut = pDst;                        /*  destination pointer       */
+  float64_t *pState = S->pState;                 /*  State pointer             */
+  const float64_t *pCoeffs = S->pCoeffs;         /*  coefficient pointer       */
+  float64_t acc1;                                /*  accumulator               */
+  float64_t b0, b1, b2, a1, a2;                  /*  Filter coefficients       */
+  float64_t Xn1;                                 /*  temporary input           */
+  float64_t d1, d2;                              /*  state variables           */
+  uint32_t sample, stageCnt,stage = S->numStages;         /*   loop counters   */
+
+
+  float64x2_t XnV, YnV;
+  float64x2x2_t dV;
+  float64x2_t zeroV = vdupq_n_f64(0.0);
+  float64x2_t t1,t2,t3,t4,b1V,b2V,a1V,a2V,s;
+
+  /* Loop unrolling. Compute 2 outputs at a time */
+  stageCnt = stage >> 1U;
+
+  while (stageCnt > 0U)
+  {
+     /* Reading the coefficients */
+     t1 = vld1q_f64(pCoeffs);
+     pCoeffs += 2;
+
+     t2 = vld1q_f64(pCoeffs);
+     pCoeffs += 2;
+
+     t3 = vld1q_f64(pCoeffs);
+     pCoeffs += 2;
+
+     t4 = vld1q_f64(pCoeffs);
+     pCoeffs += 2;
+
+     b1V = vld1q_f64(pCoeffs);
+     pCoeffs += 2;
+
+     b2V = vld1q_f64(pCoeffs);
+     pCoeffs += 2;
+
+     a1V = vld1q_f64(pCoeffs);
+     pCoeffs += 2;
+
+     a2V = vld1q_f64(pCoeffs);
+     pCoeffs += 2;
+
+     /* Reading the state values */
+     dV = vld2q_f64(pState);
+
+     sample = blockSize;
+     
+     while (sample > 0U) {
+        /* y[n] = b0 * x[n] + d1 */
+        /* d1 = b1 * x[n] + a1 * y[n] + d2 */
+        /* d2 = b2 * x[n] + a2 * y[n] */
+
+        XnV = vdupq_n_f64(*pIn++);
+
+        s = dV.val[0];
+        YnV = s;
+
+        s = vextq_f64(zeroV,dV.val[0],3);
+        YnV = vmlaq_f64(YnV, t1, s);
+
+        s = vextq_f64(zeroV,dV.val[0],2);
+        YnV = vmlaq_f64(YnV, t2, s);
+
+        s = vextq_f64(zeroV,dV.val[0],1);
+        YnV = vmlaq_f64(YnV, t3, s);
+
+        YnV = vmlaq_f64(YnV, t4, XnV);
+
+        s = vextq_f64(XnV,YnV,3);
+
+        dV.val[0] = vmlaq_f64(dV.val[1], s, b1V);
+        dV.val[0] = vmlaq_f64(dV.val[0], YnV, a1V);
+
+        dV.val[1] = vmulq_f64(s, b2V);
+        dV.val[1] = vmlaq_f64(dV.val[1], YnV, a2V);
+
+        *pOut++ = vgetq_lane_f64(YnV, 3) ;
+
+        sample--;
+     }
+    
+     /* Store the updated state variables back into the state array */
+     vst2q_f64(pState,dV);
+     pState += 4;
+
+     /* The current stage output is given as the input to the next stage */
+     pIn = pDst;
+
+     /*Reset the output working pointer */
+     pOut = pDst;
+
+     /* decrement the loop counter */
+     stageCnt--;
+
+  }
+
+  /* Tail */
+  stageCnt = stage & 1;
+  
+  while (stageCnt > 0U)
+  {
+     /* Reading the coefficients */
+     b0 = *pCoeffs++;
+     b1 = *pCoeffs++;
+     b2 = *pCoeffs++;
+     a1 = *pCoeffs++;
+     a2 = *pCoeffs++;
+
+     /*Reading the state values */
+     d1 = pState[0];
+     d2 = pState[1];
+
+     sample = blockSize;
+
+     while (sample > 0U)
+     {
+        /* Read the input */
+        Xn1 = *pIn++;
+
+        /* y[n] = b0 * x[n] + d1 */
+        acc1 = (b0 * Xn1) + d1;
+
+        /* Store the result in the accumulator in the destination buffer. */
+        *pOut++ = acc1;
+
+        /* Every time after the output is computed state should be updated. */
+        /* d1 = b1 * x[n] + a1 * y[n] + d2 */
+        d1 = ((b1 * Xn1) + (a1 * acc1)) + d2;
+
+        /* d2 = b2 * x[n] + a2 * y[n] */
+        d2 = (b2 * Xn1) + (a2 * acc1);
+
+        /* decrement the loop counter */
+        sample--;
+     }
+
+     /* Store the updated state variables back into the state array */
+     *pState++ = d1;
+     *pState++ = d2;
+
+     /* The current stage output is given as the input to the next stage */
+     pIn = pDst;
+
+     /*Reset the output working pointer */
+     pOut = pDst;
+
+     /* decrement the loop counter */
+     stageCnt--;
+  }
+}
 #else
+
+
+
+
+
+
+
+
+
+
 
 void arm_biquad_cascade_df2T_f64(
   const arm_biquad_cascade_df2T_instance_f64 * S,
