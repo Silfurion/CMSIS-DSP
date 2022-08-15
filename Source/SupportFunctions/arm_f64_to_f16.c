@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
  * Project:      CMSIS DSP Library
- * Title:        arm_f64_to_float.c
- * Description:  Converts the elements of the floating-point 64 bit vector to floating-point vector
+ * Title:        arm_f64_to_f16.c
+ * Description:  Converts the elements of the 64 bit floating-point vector to 16 bit floating-point vector
  *
  * $Date:        23 April 2021
  * $Revision:    V1.9.0
@@ -42,16 +42,16 @@
  */
 
 /**
-  @brief         Converts the elements of the f64 vector to f32 vector.
+  @brief         Converts the elements of the f64 vector to f16 vector.
   @param[in]     pSrc       points to the f64 input vector
-  @param[out]    pDst       points to the f32 output vector
+  @param[out]    pDst       points to the f16 output vector
   @param[in]     blockSize  number of samples in each vector
   @return        none
 
  */
 
 
-void arm_f64_to_float(
+void arm_f64_to_f16(
   const float64_t * pSrc,
         float32_t * pDst,
         uint32_t blockSize)
@@ -67,7 +67,7 @@ void arm_f64_to_float(
     while (blkCnt > 0U)
     {
 
-        *pDst++ = (float32_t) * pIn++;
+        *pDst++ = (float16_t) * pIn++;
         /*
          * Decrement the loop counter
          */
@@ -77,3 +77,4 @@ void arm_f64_to_float(
 /**
   @} end of f64_to_x group
  */
+

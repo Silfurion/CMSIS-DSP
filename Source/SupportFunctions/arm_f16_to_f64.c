@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
  * Project:      CMSIS DSP Library
- * Title:        arm_f64_to_float.c
- * Description:  Converts the elements of the floating-point 64 bit vector to floating-point vector
+ * Title:        arm_f16_to_f64.c
+ * Description:  Converts the elements of the floating-point 16 bit vector to floating-point 64 bit vector
  *
  * $Date:        23 April 2021
  * $Revision:    V1.9.0
@@ -26,37 +26,34 @@
  * limitations under the License.
  */
 
-#include "dsp/support_functions.h"
+#include "dsp/support_functions_f16.h"
+
 
 /**
   @ingroup groupSupport
  */
 
 /**
- * @defgroup f64_to_x  Convert 64-bit floating point value
- */
-
-/**
-  @addtogroup f64_to_x
+  @addtogroup f16_to_x
   @{
  */
 
 /**
-  @brief         Converts the elements of the f64 vector to f32 vector.
-  @param[in]     pSrc       points to the f64 input vector
-  @param[out]    pDst       points to the f32 output vector
+  @brief         Converts the elements of the f16 vector to f64 vector.
+  @param[in]     pSrc       points to the f16 input vector
+  @param[out]    pDst       points to the f64 output vector
   @param[in]     blockSize  number of samples in each vector
   @return        none
 
  */
 
-
-void arm_f64_to_float(
-  const float64_t * pSrc,
-        float32_t * pDst,
+void arm_f16_to_f64(
+  const float16_t * pSrc,
+        float64_t * pDst,
         uint32_t blockSize)
+
 {
-    const float64_t *pIn = pSrc;      /* Src pointer */
+    const float16_t *pIn = pSrc;      /* Src pointer */
     uint32_t  blkCnt;           /* loop counter */
 
     /*
@@ -67,13 +64,19 @@ void arm_f64_to_float(
     while (blkCnt > 0U)
     {
 
-        *pDst++ = (float32_t) * pIn++;
+        *pDst++ = (float64_t) * pIn++;
         /*
          * Decrement the loop counter
          */
         blkCnt--;
     }
 }
+  
+
+
 /**
-  @} end of f64_to_x group
+  @} end of f16_to_x group
  */
+
+
+
