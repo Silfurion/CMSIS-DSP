@@ -26,7 +26,7 @@
  * limitations under the License.
  */
 
-#include "dsp/support_functions.h"
+#include "dsp/support_functions_f16.h"
 
 /**
   @ingroup groupSupport
@@ -53,7 +53,7 @@
 
 void arm_f64_to_f16(
   const float64_t * pSrc,
-        float32_t * pDst,
+        float16_t * pDst,
         uint32_t blockSize)
 {
     const float64_t *pIn = pSrc;      /* Src pointer */
